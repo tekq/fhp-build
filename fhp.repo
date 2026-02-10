@@ -3,4 +3,4 @@ name=FHP Repo
 enabled=1
 gpgcheck=0
 priority=1
-baseurl=github.com/tekq/fhp-build/tree/main/$basearch
+baseurl=https://raw.githubusercontent.com/tekq/fhp-build/main/$basearch/
