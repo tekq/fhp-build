@@ -1,0 +1,5 @@
+[fhp]
+name=FHP Repo
+enabled=1
+gpgcheck=0
+baseurl=github.com/tekq/fhp-build/tree/main/$basearch
