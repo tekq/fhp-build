@@ -7,7 +7,8 @@ PACKAGES = [
     "xz", 
     "openssl", 
     "lz4", 
-    "glibc"
+    "glibc",
+    "systemd"
 ]
 REPO_URL = "https://tekq.github.io/fhp-build/x86_64/"
 FEDORA_RELEASE = "43"
