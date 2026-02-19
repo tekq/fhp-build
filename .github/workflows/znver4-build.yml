@@ -193,6 +193,11 @@ jobs:
           done
           mkdir -p ./out/x86_64
           cp bin_output/*/x86_64/*.rpm ./out/x86_64/ || true
+      - name: Upload -utils Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-utils
+          path: out/x86_64/*.rpm
   deploy:
     needs: [build, build-glibc, build-systemd, build-utils]
     if: always() && (needs.build.result == 'success' || needs.build-glibc.result == 'success' || needs.build-systemd.result == 'success' || needs.build-utils.result == 'success')
