@@ -153,9 +153,49 @@ jobs:
         with:
           name: build-systemd
           path: out/x86_64/*.rpm
+  build-utils:
+    needs: scanner
+    if: |
+      contains(needs.scanner.outputs.packages, 'binutils') || 
+      contains(needs.scanner.outputs.packages, 'elfutils')
+    runs-on: ubuntu-latest
+    container: fedora:43
+    timeout-minutes: 360
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install System Tools
+        run: dnf install -y rpm-build rpmspectool dnf-plugins-core gcc make git
+      - name: Build -utils
+        run: |
+          TARGETS=""
+          [[ "${{ needs.scanner.outputs.packages }}" == *"binutils"* ]] && TARGETS="$TARGETS binutils"
+          [[ "${{ needs.scanner.outputs.packages }}" == *"elfutils"* ]] && TARGETS="$TARGETS elfutils"
+
+          curl -L https://raw.githubusercontent.com/tekq/fhp-build/main/elfutils-patches.diff > ~/elfutils.diff
+          # curl -L https://raw.githubusercontent.com/tekq/fhp-build/main/binutils-patches.diff > ~/binutils.diff
+
+          for pkg in $TARGETS; do
+            dnf download --source $pkg
+            dnf builddep -y $pkg-*.src.rpm
+
+            if [[ $pkg -eq "elfutils" ]]; then
+              dnf -y in sysprof-capture-devel
+            fi
+            
+            rpm -ivh $pkg-*.src.rpm
+            SPEC=$(find ~/rpmbuild/SPECS -name "${pkg}.spec" | head -n 1)
+
+            patch "$SPEC" < ~/$pkg.diff
+
+            mkdir -pv bin_output/$pkg
+            rpmbuild -bb "$SPEC" --nocheck --define "_rpmdir $(pwd)/bin_output/${pkg}" --define "debug_package %{nil}" --define "_annotated_build 0"
+          done
+          mkdir -p ./out/x86_64
+          cp bin_output/*/x86_64/*.rpm ./out/x86_64/ || true
   deploy:
-    needs: [build, build-glibc, build-systemd]
-    if: always() && (needs.build.result == 'success' || needs.build-glibc.result == 'success' || needs.build-systemd.result == 'success')
+    needs: [build, build-glibc, build-systemd, build-utils]
+    if: always() && (needs.build.result == 'success' || needs.build-glibc.result == 'success' || needs.build-systemd.result == 'success' || needs.build-utils.result = 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
