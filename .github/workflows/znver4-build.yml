@@ -195,7 +195,7 @@ jobs:
           cp bin_output/*/x86_64/*.rpm ./out/x86_64/ || true
   deploy:
     needs: [build, build-glibc, build-systemd, build-utils]
-    if: always() && (needs.build.result == 'success' || needs.build-glibc.result == 'success' || needs.build-systemd.result == 'success' || needs.build-utils.result = 'success')
+    if: always() && (needs.build.result == 'success' || needs.build-glibc.result == 'success' || needs.build-systemd.result == 'success' || needs.build-utils.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
